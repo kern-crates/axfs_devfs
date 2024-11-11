@@ -5,10 +5,13 @@
 #![cfg_attr(not(test), no_std)]
 
 extern crate alloc;
+#[macro_use]
+extern crate log;
 
 mod dir;
 mod null;
 mod zero;
+mod console;
 
 #[cfg(test)]
 mod tests;
@@ -16,6 +19,7 @@ mod tests;
 pub use self::dir::DirNode;
 pub use self::null::NullDev;
 pub use self::zero::ZeroDev;
+pub use self::console::ConsoleDev;
 
 use alloc::sync::Arc;
 use axfs_vfs::{VfsNodeRef, VfsOps, VfsResult};
@@ -32,19 +36,19 @@ impl DeviceFileSystem {
     pub fn new() -> Self {
         Self {
             parent: Once::new(),
-            root: DirNode::new(None),
+            root: DirNode::new(None, 0, 0),
         }
     }
 
     /// Create a subdirectory at the root directory.
-    pub fn mkdir(&self, name: &'static str) -> Arc<DirNode> {
-        self.root.mkdir(name)
+    pub fn mkdir(&self, name: &str, uid: u32, gid: u32) -> Arc<DirNode> {
+        self.root.mkdir(name, uid, gid)
     }
 
     /// Add a node to the root directory.
     ///
     /// The node must implement [`axfs_vfs::VfsNodeOps`], and be wrapped in [`Arc`].
-    pub fn add(&self, name: &'static str, node: VfsNodeRef) {
+    pub fn add(&self, name: &str, node: VfsNodeRef) {
         self.root.add(name, node);
     }
 }
